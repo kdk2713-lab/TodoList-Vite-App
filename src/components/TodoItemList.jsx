@@ -12,7 +12,11 @@ class TodoItemList extends Component {
         false(myTodos 변수에 변동이 없으면) 이면 render() 함수가 호출되지 않음 (렌더링 생략)
     */
     shouldComponentUpdate(nextProps, nextState) {
-        return this.props.myTodos !== nextProps.myTodos;
+        return (
+            this.props.myTodos !== nextProps.myTodos ||
+            this.props.loading !== nextProps.loading ||
+            this.props.error !== nextProps.error
+        );
     }
     //HTML DOM 렌더링 후에 호출되는 lifecyle method
     componentDidMount() {
@@ -20,7 +24,16 @@ class TodoItemList extends Component {
     }
 
     render() {
-        const { myTodos } = this.props;
+        const { myTodos, loading, error } = this.props;
+
+        if (loading) {
+            return <div className="status-message loading">불러오는 중...</div>;
+        }
+
+        if (error) {
+            return <div className="status-message error">오류 발생: {error}</div>;
+        }
+
         const todoList = myTodos.map(
             ({ id, text, checked }) => (
                 <TodoItem
@@ -41,12 +54,16 @@ class TodoItemList extends Component {
 
 TodoItemList.propTypes = {
     myTodos: PropTypes.array,
+    loading: PropTypes.bool,
+    error: PropTypes.string,
     fetchAll : PropTypes.func
 };
 
 export default connect(
-    //store에 저장된 state 객체의 todos 를 가져와서 myTodos 이름에 매핑
-    (state) => ({myTodos:state.todos}), 
-    //action함수를 dispatch 하는 함수를 fetchAll 이름에 매핑
+    (state) => ({
+        myTodos: state.todos,
+        loading: state.loading,
+        error: state.error,
+    }),
     { fetchAll: fetchAllTodos }
 )(TodoItemList);
